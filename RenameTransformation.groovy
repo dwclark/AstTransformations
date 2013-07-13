@@ -26,8 +26,5 @@ public class RenameTransformation implements ASTTransformation {
     BlockStatement block = new BlockStatement();
     block.addStatements([new ExpressionStatement(addedCall), annotatedMethod.code]);
     annotatedMethod.code = block;
-    //ClassNode declaringClass = annotatedMethod.declaringClass;
-    //MethodNode mainMethod = makeMainMethod(annotatedMethod);
-    //declaringClass.addMethod(mainMethod);
   }
 }

@@ -6,7 +6,7 @@ public class ShowAsyncGroovy {
     };
   }
 
-  @AsyncPair
+  @MakeAsyncPair
   public void showThread(long id) {
     println("Caller id: ${id}, My id: ${Thread.currentThread().id}");
   }
