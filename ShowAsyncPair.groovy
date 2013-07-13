@@ -1,12 +1,19 @@
 public class ShowAsyncGroovy {
 
+  public void doThread() {
+    Thread.start {
+      println("I'm here");
+    };
+  }
+
   @AsyncPair
-  public void showThread(String message) {
-    println("Announcing ${message} from ${Thread.currentThread().id}");
+  public void showThread(long id) {
+    println("Caller id: ${id}, My id: ${Thread.currentThread().id}");
   }
   
   public static void main(String[] args) {
     def me = new ShowAsyncGroovy();
-    me.showThread("Call thread id: ${Thread.currentThread().id}");
+    me.showThread(Thread.currentThread().id);
+    me.asyncShowThread(Thread.currentThread().id).join();
   }
 }

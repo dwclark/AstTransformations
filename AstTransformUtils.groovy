@@ -2,6 +2,8 @@ import org.codehaus.groovy.transform.*;
 import org.codehaus.groovy.ast.*
 import org.codehaus.groovy.ast.expr.*
 import org.codehaus.groovy.ast.stmt.*
+import org.codehaus.groovy.classgen.VariableScopeVisitor;
+import org.codehaus.groovy.control.SourceUnit;
 
 public class AstTransformUtils {
 
@@ -13,5 +15,16 @@ public class AstTransformUtils {
     if(!(astNodes[1] instanceof MethodNode)) return false;
 
     return true;
+  }
+
+  public static Parameter[] copyParameters(Parameter[] params) {
+    params.collect { param ->
+      new Parameter(param.type, param.name, param.initialExpression); } as Parameter[];
+  }
+
+  public static void fixupScopes(SourceUnit sourceUnit) {
+    //This stuff is PFM!!
+    VariableScopeVisitor scopeVisitor = new VariableScopeVisitor(sourceUnit);
+    sourceUnit.AST.classes.each { scopeVisitor.visitClass(it); };
   }
 }

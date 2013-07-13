@@ -22,12 +22,12 @@ public class AsyncPairTransformation implements ASTTransformation {
       return;
     }
 
-    MethodNode annotatedMethod = astNodes[1];
-    ClassNode declaringClass = annotatedMethod.declaringClass;
-    declaringClass.addMethod(runnableAsyncMethod(annotatedMethod.name, annotatedMethod.parameters));
+    ClassNode declaringClass = astNodes[1].declaringClass;
+    declaringClass.addMethod(runnableAsyncMethod(astNodes[1]));
+    AstTransformUtils.fixupScopes(sourceUnit);
   }
 
-  public MethodNode runnableAsyncMethod(String methodName, Parameter[] parameters) {
+  public MethodNode runnableAsyncMethod(MethodNode methodNode) {
     /* What we want to express is something like the following:
        public void asyncMethodName(parameters) { <-- stage #3
          Thread.start {  <-- stage #2
@@ -35,18 +35,18 @@ public class AsyncPairTransformation implements ASTTransformation {
 	 }
        }
     */
-
+    
+    Parameter[] newMethodParameters = AstTransformUtils.copyParameters(methodNode.parameters);
     MethodCallExpression stage1Inner = new MethodCallExpression(
-      new VariableExpression("this"), new ConstantExpression(methodName),
-      new ArgumentListExpression(parameters));
-    ExpressionStatement stage1Outer = new ExpressionStatement(stage1Inner);
+      new VariableExpression("this"), new ConstantExpression(methodNode.name),
+      new ArgumentListExpression(newMethodParameters));
+    ReturnStatement stage1Outer = new ReturnStatement(stage1Inner);
 
-    ClosureExpression stage2Inner = new ClosureExpression([] as Parameter[], stage1Outer);
+    ClosureExpression stage2Inner = new ClosureExpression(Parameter.EMPTY_ARRAY, stage1Outer);
     StaticMethodCallExpression stage2Outer = new StaticMethodCallExpression(
-      ClassHelper.make(Thread.class), "start", threadCalledClosure);
+      ClassHelper.make(Thread.class), "start", new ArgumentListExpression(stage2Inner));
 
-    ExpressionStatement stage3Inner = new ExpressionStatement(stage2Outer);
-    return new MethodNode(asyncMethodName(methodName), ACC_PUBLIC, ClassHelper.void_WRAPPER_TYPE,
-				      parameters, [] as ClassNode[], stage3Inner);
+    return new MethodNode(asyncMethodName(methodNode.name), ACC_PUBLIC, ClassHelper.make(Thread),
+			  newMethodParameters, ClassNode.EMPTY_ARRAY, new ReturnStatement(stage2Outer));
   }
 }
