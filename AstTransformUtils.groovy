@@ -27,4 +27,12 @@ public class AstTransformUtils {
     VariableScopeVisitor scopeVisitor = new VariableScopeVisitor(sourceUnit);
     sourceUnit.AST.classes.each { scopeVisitor.visitClass(it); };
   }
+
+  public static ClassNode makeGenericClassNode(Class base, List classNodes) {
+    GenericsType[] generics = classNodes.collect { genericNode ->
+      new GenericsType(ClassHelper.make(genericNode.name)); } as GenericsType[];
+    ClassNode baseType = ClassHelper.make(base, false);
+    baseType.genericsTypes = generics;
+    return baseType;
+  }
 }

@@ -56,10 +56,7 @@ public class MakeAsyncPairTransformation implements ASTTransformation {
   }
 
   public MethodNode callableAsyncMethod(MethodNode methodNode) {
-    ClassNode genericNode = ClassHelper.make(methodNode.returnType.name);
-    GenericsType[] generics = [ new GenericsType(genericNode) ] as GenericsType[];
-    ClassNode callableType = ClassHelper.make(Callable, false);
-    callableType.genericsTypes = generics;
+    ClassNode callableType = AstTransformUtils.makeGenericClassNode(Callable, [ methodNode.returnType ]);
     CastExpression cast = wrapAndCastMethodCall(methodNode, callableType);
     DeclarationExpression initialization = makeCastStatement(cast, callableType);
 
@@ -67,10 +64,10 @@ public class MakeAsyncPairTransformation implements ASTTransformation {
     block.addStatement(new ExpressionStatement(initialization));
     block.addStatement(ReturnStatement.RETURN_NULL_OR_VOID);
     
+    //TODO: Call executor
     Parameter[] newMethodParameters = AstTransformUtils.copyParameters(methodNode.parameters);
     newMethodParameters.each { it.modifiers = ACC_FINAL; };
-    ClassNode futureType = ClassHelper.make(Future, false);
-    futureType.genericsTypes = generics;
+    ClassNode futureType = AstTransformUtils.makeGenericClassNode(Future, [ methodNode.returnType ]);
     return new MethodNode(asyncMethodName(methodNode.name), ACC_PUBLIC, futureType,
 			  newMethodParameters, ClassNode.EMPTY_ARRAY, block);
   }
