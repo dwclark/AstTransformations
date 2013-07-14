@@ -5,4 +5,7 @@ import java.lang.annotation.*
 @Retention(RetentionPolicy.SOURCE)
 @Target([ElementType.METHOD])
 @GroovyASTTransformationClass (classes=[MakeAsyncPairTransformation])
-public @interface MakeAsyncPair { }
+public @interface MakeAsyncPair {
+  String value() default "";
+}
+

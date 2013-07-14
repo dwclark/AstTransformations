@@ -23,67 +23,73 @@ public class MakeAsyncPairTransformation implements ASTTransformation {
       return;
     }
 
+    AnnotationNode annotation = astNodes[0];
+    Map annotationInfo = AstTransformUtils.extractAnnotationInfo(annotation);
+    String executorVarName = annotationInfo['value'];
     MethodNode theMethod = astNodes[1];
     ClassNode theClass = theMethod.declaringClass;
-    if(theMethod.returnType == ClassHelper.VOID_TYPE) {
-      println("void return type, I can handle that");
-      theClass.addMethod(runnableAsyncMethod(theMethod));
+    if(!executorVarName) {
+      theClass.addMethod(plainThreadAsyncMethod(theMethod));
     }
-    else {
-      println("other return type, I can handle that");
-      theClass.addMethod(callableAsyncMethod(theMethod));
+    else if(executorVarName) {
+      theClass.addMethod(executorAsyncMethod(theMethod, executorVarName));
     }
-
+  
     AstTransformUtils.fixupScopes(sourceUnit);
   }
 
-  public MethodNode runnableAsyncMethod(MethodNode methodNode) {
-    ClassNode runnableType = ClassHelper.make(Runnable);
+  public Parameter[] newMethodParameters(MethodNode methodNode) {
+    Parameter[] newMethodParameters = AstTransformUtils.copyParameters(methodNode.parameters);
+    newMethodParameters.each { it.modifiers = ACC_FINAL; };
+    return newMethodParameters;
+  }
+
+  public MethodNode plainThreadAsyncMethod(MethodNode methodNode) {
     ClassNode threadType = ClassHelper.make(Thread);
-    CastExpression cast = wrapAndCastMethodCall(methodNode, runnableType);
-    DeclarationExpression initialization = makeInitialStatement(cast, threadType);
-    MethodCallExpression methodCall = new MethodCallExpression(initialization.variableExpression,
-							       "start", MethodCallExpression.NO_ARGUMENTS);
+    CastExpression cast = wrapAndCastMethodCall(methodNode);
+    ConstructorCallExpression cce = new ConstructorCallExpression(threadType, cast);
+    DeclarationExpression declaration = new DeclarationExpression(new VariableExpression("toCall", threadType),
+								  Token.newSymbol(Types.ASSIGN, -1, -1), cce);
+    MethodCallExpression methodCall = new MethodCallExpression(declaration.getVariableExpression(), "start", MethodCallExpression.NO_ARGUMENTS);
     BlockStatement block = new BlockStatement();
-    block.addStatement(new ExpressionStatement(initialization));
+    block.addStatement(new ExpressionStatement(declaration));
     block.addStatement(new ExpressionStatement(methodCall));
-    block.addStatement(new ReturnStatement(initialization.variableExpression));
+    block.addStatement(new ReturnStatement(declaration.getVariableExpression()));
 
-    Parameter[] newMethodParameters = AstTransformUtils.copyParameters(methodNode.parameters);
-    newMethodParameters.each { it.modifiers = ACC_FINAL; };
     return new MethodNode(asyncMethodName(methodNode.name), ACC_PUBLIC, ClassHelper.make(Thread),
-			  newMethodParameters, ClassNode.EMPTY_ARRAY, block);
+			  newMethodParameters(methodNode), ClassNode.EMPTY_ARRAY, block);
   }
 
-  public MethodNode callableAsyncMethod(MethodNode methodNode) {
-    ClassNode callableType = AstTransformUtils.makeGenericClassNode(Callable, [ methodNode.returnType ]);
-    CastExpression cast = wrapAndCastMethodCall(methodNode, callableType);
-    DeclarationExpression initialization = makeCastStatement(cast, callableType);
-
-    BlockStatement block = new BlockStatement();
-    block.addStatement(new ExpressionStatement(initialization));
-    block.addStatement(ReturnStatement.RETURN_NULL_OR_VOID);
-    
-    //TODO: Call executor
-    Parameter[] newMethodParameters = AstTransformUtils.copyParameters(methodNode.parameters);
-    newMethodParameters.each { it.modifiers = ACC_FINAL; };
-    ClassNode futureType = AstTransformUtils.makeGenericClassNode(Future, [ methodNode.returnType ]);
+  public MethodNode executorAsyncMethod(MethodNode methodNode, String executorVarName) {
+    CastExpression cast = wrapAndCastMethodCall(methodNode);
+    MethodCallExpression methodCall = new MethodCallExpression(new VariableExpression(executorVarName),
+							       "submit", cast);
+    ClassNode futureType = AstTransformUtils.makeGenericClassNode(Future, [ ClassHelper.getWrapper(methodNode.returnType) ]);
     return new MethodNode(asyncMethodName(methodNode.name), ACC_PUBLIC, futureType,
-			  newMethodParameters, ClassNode.EMPTY_ARRAY, block);
+			  newMethodParameters(methodNode), ClassNode.EMPTY_ARRAY,
+			  new ReturnStatement(methodCall));
   }
 
-  public CastExpression wrapAndCastMethodCall(MethodNode methodNode, ClassNode classNode) {
+  public CastExpression wrapAndCastMethodCall(MethodNode methodNode) {
+    ClassNode classNode;
+    if(methodNode.returnType == ClassHelper.VOID_TYPE) {
+      classNode = ClassHelper.make(Runnable);
+    }
+    else {
+      classNode = AstTransformUtils.makeGenericClassNode(Callable, [ ClassHelper.getWrapper(methodNode.returnType) ]);
+    }
+
     Parameter[] callingParameters = AstTransformUtils.copyParameters(methodNode.parameters);
     MethodCallExpression stage1Inner = new MethodCallExpression(
       new VariableExpression("this"), new ConstantExpression(methodNode.name),
       new ArgumentListExpression(callingParameters));
     ReturnStatement stage1Outer = new ReturnStatement(stage1Inner);
-    ClosureExpression closure = new ClosureExpression(Parameter.EMPTY_ARRAY, stage1Outer);
+    ClosureExpression closure = new ClosureExpression([] as Parameter[], stage1Outer);
     return new CastExpression(classNode, closure);
   }
 
   public DeclarationExpression makeInitialStatement(CastExpression cast, ClassNode classNode) {
-    ConstructorCallExpression cce = new ConstructorCallExpression(classNode, cast);
+
     VariableExpression variable = new VariableExpression("toCall", classNode); 
     return new DeclarationExpression(variable, Token.newSymbol(Types.ASSIGN, -1, -1), cce);
   }

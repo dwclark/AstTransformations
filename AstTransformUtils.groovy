@@ -35,4 +35,12 @@ public class AstTransformUtils {
     baseType.genericsTypes = generics;
     return baseType;
   }
+
+  public static Map extractAnnotationInfo(AnnotationNode annotation) {
+    annotation.members.inject([:]) { map, pair ->
+      def key = pair.key;
+      def expression = pair.value;
+      map[key] = expression.value;
+      return map; };
+  }
 }
