@@ -5,27 +5,22 @@ public class ShowIntegrate {
   
   @Integrate
   public double x2(double x) {
-    double foo = x*x;
-    foo = foo + 1.0d;
-    return foo;
+    return x * x;
   }
 
   @Integrate
-  public double blah(double y) {
-    if(y == 2) {
-      println "blah";
-    }
-    else {
-      println "poo";
-    }
+  public double sin2(double z) {
+    double val = Math.sin(z);
+    val *= val;
+    return val;
+  }
 
-    return y;
+  @Integrate
+  public double sin(double q) {
+    return Math.sin(q);
   }
 
   public static void main(String[] args) {
-    double d = 100.00D;
-    println(d);
-    ShowIntegrate me = new ShowIntegrate();
-    println(me.integrateX2(1d,1d,1));
+    return;
   }
 }
