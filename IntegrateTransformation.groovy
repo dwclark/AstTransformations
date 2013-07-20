@@ -11,7 +11,7 @@ import groovy.transform.*;
 
 @GroovyASTTransformation(phase = CompilePhase.CANONICALIZATION)
 public class IntegrateTransformation implements ASTTransformation {
-
+  
   private static final ClassNode TYPECHECKED_CLASSNODE = ClassHelper.make(TypeChecked.class);
   private static final ClassNode COMPILESTATIC_CLASSNODE = ClassHelper.make(CompileStatic.class);
   private static final List TYPECHECKED_ANNOTATIONS =  [ TYPECHECKED_CLASSNODE, COMPILESTATIC_CLASSNODE ];
@@ -34,7 +34,13 @@ public class IntegrateTransformation implements ASTTransformation {
     methodNode.declaringClass.addMethod(integrationNode(methodNode));
     AstTransformUtils.fixupScopes(sourceUnit);
   }
-
+  
+  /*
+    I had hoped to use the Ast Builder for this method.  However, it proved to be impossible
+    to use here.  Ultimately I think this comes down to the fact that ast builder appears
+    to be clever, but not complete.  If you can make builder syntax work for your needs, it
+    can really cut down on the boiler plate code.  I have not been able to.
+   */
   public MethodNode integrationNode(MethodNode methodNode) {
     Parameter parameter = methodNode.parameters[0];
     String variableName = parameter.name;

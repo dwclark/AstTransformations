@@ -17,6 +17,16 @@ public class AstTransformUtils {
     return true;
   }
 
+  public static boolean legalClassAnnotation(ASTNode[] astNodes, Class requiredAnnotation) {
+    if(!astNodes) return false;
+    if(!astNodes[0] || !astNodes[1]) return false;
+    if(!(astNodes[0] instanceof AnnotationNode)) return false;
+    if(astNodes[0].classNode?.name != requiredAnnotation.name) return false;
+    if(!(astNodes[1] instanceof ClassNode)) return false;
+
+    return true;
+  }
+
   public static Parameter[] copyParameters(Parameter[] params) {
     params.collect { param ->
       new Parameter(param.type, param.name, param.initialExpression); } as Parameter[];
