@@ -7,4 +7,5 @@ import java.lang.annotation.*
 public @interface DbClass {
   String connection() default "";
   String table() default "";
+  String driver() default "";
 }
