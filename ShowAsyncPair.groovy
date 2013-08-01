@@ -20,8 +20,8 @@ public class ShowAsyncGroovy {
   }
 
   @MakeAsyncPair("executorService")
-  public int addNumbers(int one, int two) {
-    return one + two;
+  public int addNumbers(int one, int two, int three) {
+    return one + two + three;
   }
   
   public static void main(String[] args) {
