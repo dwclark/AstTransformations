@@ -24,8 +24,6 @@ public class EnableUnlessTransformation implements ASTTransformation {
   }
 }
 
-//TODO: Convert this to ClassCodeVisitorSupport
-//following the example in GINA section 19.7
 class UnlessTransformer extends ClassCodeVisitorSupport {
   public SourceUnit source;
   private MethodNode currentMethodNode;
@@ -70,7 +68,6 @@ class UnlessTransformer extends ClassCodeVisitorSupport {
       Statement stmt = arguments.get(1).code;
       IfStatement ifStmt = new IfStatement(bExpr, stmt, EmptyStatement.INSTANCE);
       int idx = currentBlockStatement.statements.findIndexOf { it == currentExpressionStatement; };
-      //currentBlockStatement.statements.remove(idx);
       currentBlockStatement.statements.set(idx, ifStmt);
     }
     
