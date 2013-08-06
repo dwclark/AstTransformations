@@ -61,7 +61,6 @@ class UnlessTransformer extends ClassCodeVisitorSupport {
   @Override
   public void visitMethodCallExpression(MethodCallExpression methodCall) {
     if(isUnlessStatement(methodCall)) {
-      println("Found an unless statement");
       List arguments = methodCall.arguments.expressions;
       BooleanExpression bExpr = new NotExpression(new BooleanExpression(new CastExpression(ClassHelper.boolean_TYPE,
 											   arguments.get(0))));

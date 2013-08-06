@@ -1,17 +1,17 @@
 import java.util.concurrent.*;
 
-public class ShowAsyncGroovy {
+public class ShowAsyncPair {
 
   private static ExecutorService executorService = Executors.newCachedThreadPool();
 
   @MakeAsyncPair
   public void showThread(long id) {
-    println("[PLAIN JAVA THREAD] Caller id: ${id}, My id: ${Thread.currentThread().id}");
+    println("[PLAIN JAVA THREAD] Caller Thread id: ${id}, My Thread id: ${Thread.currentThread().id}");
   }
   
   @MakeAsyncPair("executorService")
   public void showExecutorThread(long id) {
-    println("[EXECUTOR SERVICE] Caller id: ${id}, My id: ${Thread.currentThread().id}");
+    println("[EXECUTOR SERVICE] Caller Thread id: ${id}, My Thread id: ${Thread.currentThread().id}");
   }
 
   @MakeAsyncPair("executorService")
@@ -26,7 +26,7 @@ public class ShowAsyncGroovy {
   
   public static void main(String[] args) {
     println();
-    def me = new ShowAsyncGroovy();
+    def me = new ShowAsyncPair();
     println("****Test sync vs async calls, thread ids should be different****");
     me.asyncShowThread(Thread.currentThread().id).join();
     println();
@@ -42,8 +42,8 @@ public class ShowAsyncGroovy {
     println();
 
     //See if synchronous arithmetic works like asynchronous arithmetic
-    println("Synchronous: ${me.addNumbers(1, 5)}, Asynchronous: ${me.asyncAddNumbers(1, 5).get()}");
-    assert(me.addNumbers(1, 5) == me.asyncAddNumbers(1, 5).get());
+    println("Synchronous: ${me.addNumbers(1, 5, 12)}, Asynchronous: ${me.asyncAddNumbers(1, 5, 12).get()}");
+    assert(me.addNumbers(1, 5, 12) == me.asyncAddNumbers(1, 5, 12).get());
 
     executorService.shutdown();
   }
