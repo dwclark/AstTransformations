@@ -41,8 +41,12 @@ to invoke the Noisy demo.  Replace Noisy with ShowAsyncPair, ShowIntegrate, UseU
 
 and then compare the time it takes to run to the time it takes the ShowIntegrate demo to run (the groovy version of the same code).
 
-Finallay, to view the methods that were generated when Person.groovy was compiled, make sure you are in the output directory and run the following command to view the methods in the compiled Person class:
+Finally, to view the methods that were generated when Person.groovy was compiled, make sure you are in the output directory and run the following command to view the methods in the compiled Person class:
 
 ```javap Person```
 
+Viewing Transformations in groovyConsole
+========================================
+You can view the transformations that will happen at compile time using the groovyConsole.  To do this, change to the directory where the script is and invoke the groovyConsole, passing in the classpath of the compiled transformations.  For example, to see the transformation of the ShowAsyncPair.groovy file, change to the demo directory and then execute this command:
 
+```groovyConsole -cp ../output/ ShowAsyncPair.groovy```
