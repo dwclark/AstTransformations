@@ -1,4 +1,4 @@
-public class Integrate {
+public class JavaIntegrate {
 
     public static double doIt(Calculate calculate, double lower, double upper, int steps) {
 	double sum_pry1M5Tz90L1vHUehxHsxN7VefQ = 0.0;
