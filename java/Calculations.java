@@ -22,7 +22,7 @@ public class Calculations {
 
     public static class CalculateX3 implements Calculate {
 	public double calc(double x) {
-	    return x * x *x;
+	    return x * x * x;
 	}
     }
     
